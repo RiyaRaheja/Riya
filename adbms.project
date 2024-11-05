@@ -1,0 +1,164 @@
+create database bake;
+use bake;
+
+CREATE TABLE bakery_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL
+);
+
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (item_id) REFERENCES bakery_items(id)
+);
+
+INSERT INTO bakery_items (item_name, price) VALUES
+('Chocolate Cake', 15.99),
+('Vanilla Cupcake', 2.49),
+('Blueberry Muffin', 1.99),
+('Cheese Croissant', 3.50),
+('Apple Pie', 12.00),
+('Pecan Tart', 9.99),
+('Fudge Brownie', 2.99),
+('Carrot Cake', 16.50),
+('Baguette', 2.00),
+('Sourdough Bread', 3.00);
+
+select * from orders
+
+
+import mysql.connector
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import Toplevel
+
+def connect_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",         
+        database="bake"
+    )
+
+def view_items():
+    for widget in items_frame.winfo_children():
+        widget.destroy()
+    
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM bakery_items")
+    items = cursor.fetchall()
+    conn.close()
+
+    for row in items:
+        item_label = tk.Label(items_frame, text=f"{row[0]}: {row[1]} - ${row[2]:.2f}",bg="cyan")
+        item_label.pack()
+
+def place_order():
+    item_id = entry_item_id.get()
+    quantity = entry_quantity.get()
+
+    if not item_id or not quantity.isdigit():
+        messagebox.showerror("Input Error", "Please enter a valid item ID and quantity.")
+        return
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT price FROM bakery_items WHERE id = %s", (item_id,))
+    item = cursor.fetchone()
+    
+    if not item:
+        messagebox.showerror("Error", "Item ID does not exist.")
+        conn.close()
+        return
+
+    total_price = item[0] * int(quantity)
+    cursor.execute("INSERT INTO orders (item_id, quantity, total_price) VALUES (%s, %s, %s)",
+                   (item_id, quantity, total_price))
+    conn.commit()
+    conn.close()
+    
+    messagebox.showinfo("Success", "Order placed successfully!")
+    clear_order_fields()
+    
+def clear_order_fields():
+    entry_item_id.delete(0, tk.END)
+    entry_quantity.delete(0, tk.END)
+
+
+def view_orders():
+    for widget in orders_frame.winfo_children():
+        widget.destroy()
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM orders")
+    orders = cursor.fetchall()
+    conn.close()
+
+    for row in orders:
+        order_label = tk.Label(orders_frame, text=f"Order ID {row[0]}, Item ID {row[1]}, Quantity {row[2]}, Total: ${row[3]:.2f}")
+        order_label.pack()
+
+
+def delete_order():
+    order_id = entry_order_id.get()
+
+    if not order_id.isdigit():
+        messagebox.showerror("Input Error", "Please enter a valid order ID.")
+        return
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM orders WHERE order_id = %s", (order_id,))
+    conn.commit()
+    conn.close()
+    
+    messagebox.showinfo("Success", "Order deleted successfully!")
+    entry_order_id.delete(0, tk.END)
+    view_orders()
+
+root = tk.Tk()
+root.title("Bakery Ordering System")
+root.geometry('800x700')
+root.configure(bg="pink") 
+
+
+items_frame = tk.Frame(root,bg="cyan")
+items_frame.pack(pady=10)
+
+orders_frame = tk.Frame(root)
+orders_frame.pack(pady=10)
+
+button_frame = tk.Frame(root,bg="Pink")
+button_frame.pack(pady=10)
+
+tk.Button(button_frame, text="Place Order", command=place_order,bg="green",fg="white").pack(side=tk.LEFT, padx=30)
+tk.Button(button_frame, text="View Bakery Items", command=view_items,bg="green",fg="white").pack(side=tk.LEFT, padx=30)
+tk.Button(button_frame, text="View Orders", command=view_orders,bg="green",fg="white").pack(side=tk.LEFT, padx=30)
+tk.Button(button_frame, text="Delete Order", command=delete_order,bg="green",fg="white").pack(side=tk.LEFT, padx=30)
+
+tk.Label(root, text="",bg="pink").pack()
+tk.Label(root, text="",bg="pink").pack()
+tk.Label(root, text="",bg="pink").pack()
+
+tk.Label(root, text="Item ID:",bg="pink").pack()
+entry_item_id = tk.Entry(root)
+entry_item_id.pack()
+
+tk.Label(root, text="",bg="pink").pack()
+
+tk.Label(root, text="Quantity:",bg="pink").pack()
+entry_quantity = tk.Entry(root)
+entry_quantity.pack()
+
+tk.Label(root, text="",bg="pink").pack()
+
+tk.Label(root, text="Order ID to delete:",bg="pink").pack()
+entry_order_id = tk.Entry(root)
+entry_order_id.pack()
+
+# Start the GUI
+root.mainloop()
