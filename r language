@@ -1,0 +1,81 @@
+library(dplyr)
+library(ggplot2)
+unzip("C:\\Users\\TAMANNA\\Downloads\\archive (1).zip",exdir="C:\\Users\\TAMANNA\\OneDrive\\Documents")
+dt=read.csv("Time-Wasters on Social Media.csv")
+head(dt)
+names(dt)
+glimpse(dt)
+summary(dt)
+str(dt)
+dim(dt)
+sum(is.na(dt))
+aggregate(Time.Spent.On.Video~Platform,dt,mean)
+library(ggplot2)
+
+avg_time <- dt %>%
+  group_by(Platform) %>%
+  summarise(AverageTime = mean(Total.Time.Spent, na.rm = TRUE))
+
+ggplot(avg_time, aes(x = reorder(Platform, -AverageTime), y = AverageTime, fill = Platform)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Time Spent on Social Media Platforms", x = "Platform", y = "Average Time (minutes)")
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  head(dt)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ggplot(dt, aes(x = Engagement, y = Total.Time.Spent, color = Platform)) +
+    geom_point(alpha = 0.5) +
+    theme_minimal() +
+    labs(title = "Time Spent vs. Engagement on Social Media", x = "Engagement", y = "Time Spent (minutes)")
+  
+  
+  pie_data <- dt %>%
+    group_by(Platform) %>%
+    summarise(TotalTimeSpent = sum(Total.Time.Spent, na.rm = TRUE))
+  
+  ggplot(pie_data, aes(x = "", y = TotalTimeSpent, fill = Platform)) +
+    geom_bar(width = 1, stat = "identity") +
+    coord_polar(theta = "y") +
+    labs(title = "Proportion of Time Spent on Each Social Media Platform") 
+  
+  colnames(dt)
+  
+  
+  
+  
+  
+ggplot(dt, aes(x = Age)) +
+geom_histogram(binwidth = 5, fill = "lightblue", color = "black") +
+labs(title = "Distribution of User Ages", x = "Age", y = "Frequency") 
+  
+  
+
+
+
+
+ggplot(dt, aes(x = Gender, y = Total.Time.Spent, fill = Gender)) +
+  geom_boxplot() +
+  labs(title = "Total Time Spent on Social Media by Gender", x = "Gender", y = "Total Time Spent (minutes)") 
+
+
+
+
+engagement_heatmap <- dt %>%
+  group_by(Video.Category) %>%
+  summarise(AvgEngagement = mean(Engagement, na.rm = TRUE))
+
+ggplot(engagement_heatmap, aes(x = Video.Category, y = AvgEngagement, fill = AvgEngagement)) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient(low = "white", high = "blue") +
+  labs(title = "Average Engagement by Video Category", x = "Video Category", y = "Average Engagement") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
