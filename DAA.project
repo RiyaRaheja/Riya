@@ -1,0 +1,110 @@
+import tkinter as tk
+from tkinter import messagebox
+
+root = tk.Tk()
+root.title("Contact Book")
+root.geometry("700x600")
+
+contacts = []
+
+title = tk.Label(root, text="Contact Book", font=("Helvetica", 16))
+title.pack(pady=10)
+
+
+def add_contact():
+    name = name_entry.get()
+    phone = phone_entry.get()
+    if not phone.isnumeric() or len(phone) is not int(10):
+        messagebox.showwarning("Warning", "Please enter valid phone number.")
+        return
+
+    if name and phone:
+        contact = f"{name.capitalize()} - {phone}"
+        contacts.append(contact)
+        contact_listbox.insert(tk.END, contact)
+        name_entry.delete(0, tk.END)
+        phone_entry.delete(0, tk.END)
+
+        bubble_sort(contacts)
+        update_contact_listbox()
+    else:
+        messagebox.showwarning("Warning", "Please enter both name and phone number.")
+
+
+def delete_contact():
+    try:
+        selected_index = contact_listbox.curselection()[0]
+        contact_listbox.delete(selected_index)
+        del contacts[selected_index]
+    except IndexError:
+        messagebox.showwarning("Warning", "Please select a contact to delete.")
+
+def search_contacts():
+    searched_name = search.get().lower()
+    result = binary_search(contacts, searched_name)
+    
+    if result is not None:
+        messagebox.showinfo("Contact Found", result)
+    else:
+        messagebox.showinfo("No Results", "No contacts found matching your search.")
+        
+def binary_search(arr, name):
+    low = 0
+    high = len(arr) - 1
+    
+    while low <= high:
+        mid = (low + high) // 2
+        mid_name = arr[mid].split(" - ")[0].lower()
+        
+        if mid_name == name:
+            return arr[mid]  
+        elif mid_name < name:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return None  
+
+
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        for j in range(0, n-i-1):
+            name_j = arr[j].split(" - ")[0].lower()
+            name_j1 = arr[j+1].split(" - ")[0].lower()
+            if name_j > name_j1:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+
+def update_contact_listbox():
+    contact_listbox.delete(0, tk.END)
+    for contact in contacts:
+        contact_listbox.insert(tk.END, contact)
+                
+name_label = tk.Label(root, text="Name:")
+name_label.pack()
+name_entry = tk.Entry(root, width=40)
+name_entry.pack(pady=5)
+
+phone_label = tk.Label(root, text="Phone Number:")
+phone_label.pack()
+phone_entry = tk.Entry(root, width=40)
+phone_entry.pack(pady=5)
+
+add_contact_btn = tk.Button(root, text="Add Contact", command=add_contact)
+add_contact_btn.pack(pady=10)
+
+delete_contact_btn = tk.Button(root, text="Delete Contact", command=delete_contact)
+delete_contact_btn.pack(pady=10)
+
+search_contact_ = tk.Label(root, text="Search Contact:")
+search_contact_.pack(pady=10)
+
+search = tk.Entry(root, width=40)
+search.pack(pady=5)
+
+search_btn = tk.Button(root, text="Search Contact", command=search_contacts)
+search_btn.pack(pady=10)
+
+contact_listbox = tk.Listbox(root, width=50, height=10)
+contact_listbox.pack(pady=10)
+
+root.mainloop()
